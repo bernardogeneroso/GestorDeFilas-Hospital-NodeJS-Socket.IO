@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="pt_PT">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title><%= empresaNome %></title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+  <link href="assets/painelAdmin/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/notifications/toastr.css" rel="stylesheet" type="text/css" />
+  <% if(permission >= 1 && permission <=3) { %>
+  <link href="assets/painelAdmin/css/style.css" rel="stylesheet">
+  <script src="http://cdn.ckeditor.com/4.6.1/standard/ckeditor.js"></script><% } %>
+  <script src="assets/painelAdmin/js/bootstrap.min.js"></script>
+  <script src="assets/notifications/toastr.min.js"></script>
+  <link href="assets/style.css" rel="stylesheet">
+
+</head>
+
+<body class="pushmenu-push" style="margin: 0;padding: 0;">
+  <% if(permission >= 1 && permission <=3) { %>
+
+  <header id="header">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10">
+          <h2><span class="glyphicon glyphicon-cog" aria-hodden="true"></span> Menu - Bem vindo <%= (medicoGab[id]) ? medicoGab[id].medicoNome : (functionarioBalcao[balcaoUser]) ? functionarioBalcao[balcaoUser].medicoNome : username %> </h2>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="breadcrumb">
+    <div class="container">
+      <ol class="breadcrumb">
+        <li class="active">Painel Admin | <%= empresaNome %></li>
+        <li class="menuRight">
+          <a href="/logout?_method=DELETE" type="submit">Terminar sessão</a>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+
+  <section id="main">
+    <div class="container">
+      <div class="row">
+        
+          <% if(permission === 3) { %>
+          <!-- Informações de Administrator -->
+          <div class="col-md-12">
+            <div class="panel panel-default">
+              <div class="panel-heading main-color-bg" style="background:#337ab7;color: #fff;">
+                <h3 class="panel-title">Informações de Administrator</h3>
+              </div>
+              <div class="panel-body">
+
+                <div class="col-md-4">
+                  <div class="well dash-box" style="background-color: #DEB427;color: #fff;height:8pc">
+                    <h2><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <update id="clientON"><%= clientUpdate %></update></h2>
+                    <h4>Clientes atuais</h4>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="well dash-box" style="background-color: red; color: #fff;height:8pc">
+                    <h2><i class="fa fa-ticket-alt"></i><span aria-hidden="true"></span> <update id="senhaUpdateAdmin"><%= somaTotalSenhaAdmin %></update></h2>
+                    <h4>Senhas totais</h4>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="well dash-box" style="background-color: #40BFA9;color: #fff;height:8pc">
+                    <h2><i class="fa fa-users"></i></i><span aria-hidden="true"></span> <update id="clienteAtendimentoUpdateAdmin"><%= clienteParaSerAtentido %></update></h2>
+                    <h5>Clientes á espera do atendimento</h5>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+          
+            <% } %>
+
+            
+
+            <% if(permission === 1) { %> 
+            <!--Painel de senhas -->
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading main-color-bg" style="background:#337ab7;color: #fff;">
+                  <h3 class="panel-title discoverJob">Painel de senhas</h3>
+                </div>
+                <div class="panel-body" style="display: flex;align-items: center;justify-content: center;">
+                    <div class="col-md-3 selectDIV" style="width: 20pc;">
+                      <div class="well dash-box" style="color: #fff;/*height: 9.5pc;*/text-align: center;background-color: #337ab7;"> <%= //(!senhasGabinete[gabinete]) ? '#337ab7' : medicoGab[id].corBoard %>
+                        <h3 id="especialidadeMedico"><%= (!senhasGabinete[gabinete]) ? '' : medicoGab[id].especialidade %></h3>
+                        <h1 id="gabInfo" style="display: none">Atentimento concluído</h1>
+                        <h2 id="gabSenhaH2">Senha: <update id="senhaGabMedico"><%= (!senhasGabinete[gabinete]) ? 'Nenhum paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].senha : 'Nenhum paciente' %></update></h2>
+                      </div>
+                    </div>
+                </div>
+                <div style="text-align: center;margin-bottom: 14px;" id="senhaGabMedicoAction" data-medico-posicao="<%= id %>" data-gabinete="<%= medicoGab[id].gabinete %>" data-gabinete-senha="<%= medicoGab[id].senha %>">
+                    <button class="btn btn-info btn-lg" title="Chamar o próximo paciente" id="gabSenhaChamarProximoPaciente" style="width: 4pc;"><i class="fas fa-user-plus"></i></button>
+                    <button class="btn btn-info btn-lg senhaSelect" title="Chamar paciente no painel" style="width: 4pc;margin-right: 20px;"><i class="fas fa-bullhorn"></i></button>
+                    <button class="btn btn-info btn-lg" title="Consulta concluída" id="gabSenhaCheckMedico" style="width: 4pc;"><i class="fa fa-check"></i></button>  
+                    <button class="btn btn-info btn-lg" title="Atribuir outra especialidade" id="gabSenhaAlterarMedico" data-toggle="modal" data-target="#retirarSenhasGab" style="width: 4pc;"><i class="fa fa-arrow-circle-right"></i></button>
+                  </div>
+              </div>
+            </div>
+            <!--Painel do Médico Cliente informação -->
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading main-color-bg" style="background:#337ab7;color: #fff;">
+                  <h3 class="panel-title">Painel do Médico | Cliente informação</h3>
+                </div>
+                <div class="panel-body">
+                    <div  class="col-md-6">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Nome completo</label>
+                          <p id="gabNC"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].nc : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Nome próprio</label>
+                          <p id="gabNP"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].np : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Apelido</label>
+                          <p id="gabA"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].a : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="form-group col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Sexo</label>
+                          <p id="gabS"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].s : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+
+                    <div  class="col-md-6">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Endereço</label>
+                          <p id="gabE"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].e : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Cidade</label>
+                          <p id="gabC"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].c : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Código postal</label>
+                          <p id="gabCP"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].cp : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Telefone</label>
+                          <p id="gabT"><%= (!senhasGabinete[gabinete]) ? 'Sem paciente' : (senhasGabinete[gabinete][medicoGab[id].senha]) ? senhasGabinete[gabinete][medicoGab[id].senha].t : 'Sem paciente' %></p>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>   
+          <% } %> 
+
+          <% if(permission === 2) { %> 
+            <!--Painel do Balcão -->
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading main-color-bg" style="background:#337ab7;color: #fff;">
+                  <h3 class="panel-title discoverJob">Painel do Balcão</h3>
+                </div>
+                <div class="panel-body" style="display: flex;align-items: center;justify-content: center;">
+                    <div class="col-md-3 selectDIV" style="width: 20pc;">
+                      <div class="well dash-box" style="color: #fff;/*height: 9.5pc;*/text-align: center;background-color: #337ab7;"> <%= //(!senhasGabinete[gabinete]) ? '#337ab7' : medicoGab[id].corBoard %>
+                        <h3 id="UpdateEspecialidadeMedicoBalcao"><%= (!senhasBalcao[gabinete]) ? '' : (senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha]) ? senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha].especialidade : '' %></h3>
+                        <h1 id="balInfo" style="display:none">Atentimento concluído</h1>
+                        <h2 id="balSenha">Senha: <update id="updateSenhaFuncionarioAuto"><%= (!senhasBalcao[gabinete]) ? 'Nenhum cliente' : (senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha]) ? senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha].senha : 'Nenhum cliente' %></update></h2>
+                      </div>
+                    </div>
+                </div>
+                <div style="text-align: center;margin-bottom: 14px;" id="senhaBalcaoFuncionarioAction" data-medico-balcao="<%= (!senhasBalcao[gabinete]) ? 'Nenhum cliente' : (senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha]) ? senhasBalcao[gabinete][functionarioBalcao[balcaoUser].senha].balcaoMedico : 'Nenhum cliente' %>" data-funcionario-posicao="<%= id %> " data-balcao="<%= functionarioBalcao[balcaoUser].balcao %>" data-balcao-senha="<%= functionarioBalcao[balcaoUser].senha %>">
+                    <button class="btn btn-info btn-lg" title="Chamar o próximo cliente" id="balcaoSenhaChamarProximoFuncionario" style="width: 4pc;"><i class="fas fa-user-plus"></i></button>
+                    <button class="btn btn-info btn-lg senhaSelect" title="Chamar cliente no painel" style="width: 4pc;margin-right: 20px;"><i class="fas fa-bullhorn"></i></button>
+                    <button class="btn btn-info btn-lg" title="Cliente atentido" id="balcaoSenhaCheckFuncionario" style="width: 4pc;"><i class="fa fa-check"></i></button>
+                    <button class="btn btn-info btn-lg" title="Atribuir outra especialidade" id="balcaoSenhaAlterarFuncionario" data-toggle="modal" data-target="#retirarSenhasFunc" style="width: 4pc;"><i class="fa fa-arrow-circle-right"></i></button>
+                  </div>
+              </div>
+            </div>
+            <!--Painel do Balcão Cliente informação -->
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading main-color-bg" style="background:#337ab7;color: #fff;">
+                  <h3 class="panel-title">Painel do Balcão | Cliente informação</h3>
+                </div>
+                <div class="panel-body">
+                    <div  class="col-md-6">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Nome completo</label>
+                          <input type="text" name="balNC" class="form-control">
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Nome próprio</label>
+                          <input type="text" name="balNP" class="form-control">
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Apelido</label>
+                          <input type="text" name="balA" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                      <label for="inputState">Sexo</label>
+                      <select id="balSexo" class="form-control">
+                        <option selected>Selecione...</option>
+                        <option>F</option>
+                        <option>M</option>
+                      </select>
+                    </div>
+
+                    <div  class="col-md-6">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Endereço</label>
+                          <input type="text" name="balE" class="form-control">
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Cidade</label>
+                          <input type="text" name="balC" class="form-control">
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Código postal</label>
+                          <input type="text" name="balCP" class="form-control">
+                        </div>
+                    </div>
+                    <div  class="col-md-2">
+                        <div class="col">
+                          <label for="formGroupExampleInput">Telefone</label>
+                          <input type="text" name="balT" value=""onkeypress="javascript:return isNumber(event)" class="form-control">
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>   
+          <% } %> 
+            
+            </div>
+
+            <div class="container" style="display: table;text-align: center;margin-bottom:10px;font-size:32px">
+              <div id="timerDia" style="display: table-cell; width: 50%;"></div>
+              <div id="timerHora" style="display: table-cell; width: 50%;"></div>
+            </div>
+
+        <% } else { %>
+        <style>
+          ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            background-color: #fafafa;
+            color:white
+          }
+
+          li {
+            float: left;
+          }
+
+          li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+          }
+        </style>
+        <ul>
+          <li><div id="nav_list" class="desactiveSelect"><i id="menuChange" class="fas fa-bars"></i></li>
+           <li><div style="font-size:3pc;color:#337ab7;padding:14px 16px;margin-left: 3pc;" id="timerHora"></div></li>
+          <li style="float: none;position: absolute;top: 50%;left: 50%;transform: translate(-50%, 11%);"><img src="assets/images/logo/logoHospital.png" href="https://pngimage.net" id="logoImg"></li>
+          <li style="float:right"><a><img src="assets/images/pub/pub.jpg" style="max-width: 90px;max-height: 120px;border-radius:8px"></a></li>
+          <li style="float:right"><div style="font-size:3pc;color:#337ab7;padding:14px 16px;" id="timerDia"></div></li>
+        </ul>
+
+
+        <nav class="pushmenu pushmenu-left desactiveSelect">
+          <ul class="links" style="font-size: 25px;color: white;background-color: #337ab7 !important;">
+            <li> <a id="homeli">Home</a> </li>
+            <li> <a id="senhasli">Senhas</a> </li>
+            <li> <a href="/login">Login</a> </li>
+          </ul>
+        </nav>
+        <div style="margin: 6px;">
+          <div id="home" style="    flex: 1;
+          width: 100%;
+          /* overflow-x: scroll; */
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          margin-top: 102px;">       
+
+
+            <div class="col-md-12 desactiveSelect">
+              <div class="panel panel-default">
+                <div class="panel-body">
+
+                  <% for (i = 0; i < medicoGab.length; i++) { %> 
+                <div class="col-md-12 medicoSenhas" data-medico-posicao="<%= medicoGab[i].posicao %>">
+                  <div class="col-md-5">
+                    <div class="well dash-box" style="background-color: <%= medicoGab[i].corBoard %>;color: #fff;">
+                      <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= medicoGab[i].especialidade %></h1>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="well dash-box" style="background-color: #DEB427;color: #fff;">
+                      <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= medicoGab[i].alcunha %><update class="gabSenhas"><%= (listaChamadaGab[medicoGab[i].gabinete]) ? (zeroPad(listaChamadaGab[medicoGab[i].gabinete].senhaChamada, 3)) : '---' %></update></h1>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="well dash-box" style="background-color: #007EBF;color: #fff;">
+                      <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= medicoGab[i].gabinete %></h1>
+                    </div>
+                  </div>
+                  <hr style="border-top: 1px solid #337ab7;margin-top: -10px !important;margin-bottom: 8px !important;">
+                </div>
+                  <% } %> 
+                  <div class="col-md-12">
+                  <hr style="border-top: 3px solid #337ab7;margin-top: -10px !important;margin-bottom: 8px !important;">
+                  </div>
+
+                  <% for (i = 0; i < functionarioBalcao.length; i++) { %> 
+                    <div class="col-md-12" data-balcao-posicao="<%= functionarioBalcao[i].posicao %>">
+                      <div class="col-md-5">
+                        <div class="well dash-box" style="background-color: #DEB427;color: #fff;">
+                          <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= 'BALCÃO' %></h1>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="well dash-box" style="background-color: #DEB427;color: #fff;">
+                          <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= functionarioBalcao[i].alcunha %><update class="balcaoSenhas"><%= (listaChamadaBalcao[functionarioBalcao[i].balcao]) ? (zeroPad(listaChamadaBalcao[functionarioBalcao[i].balcao].senhaChamada, 3)) : '---' %></update></h1>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="well dash-box" style="background-color: #007EBF;color: #fff;">
+                          <h1 style="font-size: 3.4pc;text-align: center;"><span aria-hidden="true"></span><%= functionarioBalcao[i].balcao %></h1>
+                        </div>
+                      </div>
+                      <hr style="border-top: 1px solid #337ab7;margin-top: -10px !important;margin-bottom: 8px !important;">
+                    </div>
+                      <% } %> 
+
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="senhas" style="display: none;">
+
+            <div class="col-md-12" class="desactiveSelect">
+              <div class="panel panel-default">
+                <div class="aumentPanel panel-heading main-color-bg " style="background:#337ab7;color: #fff;">
+                  <h2 class="panel-title fontUp">Retire aqui a sua senha</h2>
+                </div>
+                <div class="panel-body">
+
+                  <% for (i = 0; i < medicoGab.length; i++) { %> 
+                    
+                    <div class="col-md-3" style="margin-bottom: -15px !important;">
+                      <div class="well dash-box" style="background-color: #007EBF;color: #fff;">
+                        <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].alcunha : '---' %></h1>
+                      </div>
+                    </div>
+                    <div class="col-md-9 retirarSenha" data-medico-posicao="<%= medicoGab[i].posicao %>" style="margin-bottom: -15px !important;">
+                      <div class="well dash-box" style="background-color: <%= medicoGab[i].corBoard %>;color: #fff;">
+                        <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].especialidade : '---' %></h1>
+                      </div>
+                    </div>
+                    
+                    <% } %>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } %>
+
+
+  <!-- Modal Senhas -->
+    <div class="modal fade" id="retirarSenhasFunc" role="dialog">
+      <div class="modal-dialog">
+      
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Funcionário | Retirar senha</h4>
+          </div>
+          <div class="modal-body">
+            <% for (i = 0; i < medicoGab.length; i++) { %>           
+              <div class="col-md-3" style="margin-bottom: -15px !important;">
+                <div class="well dash-box" style="background-color: #007EBF;color: #fff;">
+                  <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].alcunha : '---' %></h1>
+                </div>
+              </div>
+              <div class="col-md-9 retirarSenhaFunc" data-medico-posicao="<%= medicoGab[i].posicao %>" style="margin-bottom: -15px !important;">
+                <div class="well dash-box" style="background-color: <%= medicoGab[i].corBoard %>;color: #fff;">
+                  <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].especialidade : '---' %></h1>
+                </div>
+              </div>    
+              <% } %>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default close" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Modal Senhas Gabinete  -->
+    <div class="modal fade" id="retirarSenhasGab" role="dialog">
+      <div class="modal-dialog">
+      
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Funcionário | Retirar senha</h4>
+          </div>
+          <div class="modal-body">
+            <% for (i = 0; i < medicoGab.length; i++) { %>           
+              <div class="col-md-3 removeSeuBloco" style="margin-bottom: -15px !important;">
+                <div class="well dash-box" style="background-color: #007EBF;color: #fff;">
+                  <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].alcunha : '---' %></h1>
+                </div>
+              </div>
+              <div class="col-md-9 retirarSenhaGab removeSeuBloco2" data-medico-posicao="<%= medicoGab[i].posicao %>" style="margin-bottom: -15px !important;">
+                <div class="well dash-box" style="background-color: <%= medicoGab[i].corBoard %>;color: #fff;">
+                  <h1 style="font-size: 3pc;text-align: center;"><span aria-hidden="true"></span><%= (medicoGab[i]) ? medicoGab[i].especialidade : '---' %></h1>
+                </div>
+              </div>    
+              <% } %>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default close" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+
+        <script>
+          //toastr opções
+          toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": true,
+            "positionClass": "toast-top-center",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "4000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+          }
+          //
+
+          const zeroPad = (num, places) => String(num).padStart(places, '0') //001 ou 01
+
+          //timer
+          setInterval(function() {
+              var currentTime = new Date ();
+              var currentYear = currentTime.getFullYear();
+              var currentMonth= ("0" + (currentTime.getMonth() + 1)).slice(-2)
+              var currentDay = currentTime.getDate()
+              var currentHours = currentTime.getHours();   
+              var currentMinutes = currentTime.getMinutes();   
+              var currentSeconds = currentTime.getSeconds();
+              currentMinutes = ( currentMinutes < 10 ? "0" : "" ) + currentMinutes;   
+              currentSeconds = ( currentSeconds < 10 ? "0" : "" ) + currentSeconds;
+              var currentDia =  zeroPad(currentDay, 2) + "/" + currentMonth + "/" + currentYear;
+              var currentHora = currentHours + ":" + currentMinutes + ":" + currentSeconds;
+              $('#timerDia').text(currentDia)
+              $('#timerHora').text(currentHora)
+          }, 1000); //
+          
+
+          var socket = io('http://<%= ip %>:<%= porta %>'); //atribuição do ip do server
+          
+          $('input[name="balNC"]').prop('disabled', true);
+          $('input[name="balNP"]').prop('disabled', true);
+          $('input[name="balA"]').prop('disabled', true);
+          $('#balSexo').prop('disabled', true);
+          $('input[name="balE"]').prop('disabled', true);
+          $('input[name="balC"]').prop('disabled', true);
+          $('input[name="balCP"]').prop('disabled', true);
+          $('input[name="balT"]').prop('disabled', true);
+ 
+          //global var
+          var selectClass = 0
+          var balcaoCheck = 0
+          var gabCheck = 0
+          var atentimento = 0
+          var consulta = 0
+          var removeUmaVez = 0
+          var retirarSenhaFunc = 0
+          //
+          //function
+          function playSoundSenha() {
+            var audio = new Audio('assets/audio/senhasSound.mp3');
+            audio.play();
+          }
+          //
+          //home
+          $menuLeft = $('.pushmenu-left');
+          $nav_list = $('#nav_list');
+
+          $nav_list.click(function () {
+            $(this).toggleClass('active');
+            $('.pushmenu-push').toggleClass('pushmenu-push-toright');
+            //<i class="fas fa-bars"></i>
+            $('#menuChange').toggleClass('fa-bars fa-minus-square');
+            $menuLeft.toggleClass('pushmenu-open');
+          });
+
+          $('#homeli').click(function () {
+            $('#home').css('display', 'block');
+            $('#senhas').css('display', 'none');
+            $('#menuChange').click();
+          });
+          $('#senhasli').click(function () {
+            $('#senhas').css('display', 'block');
+            $('#home').css('display', 'none');
+            $('#menuChange').click();
+          });
+
+          $('.senhaSelect').click(function(){
+            if($('#updateSenhaFuncionarioAuto').text() == 'Nenhum cliente' || $('#senhaGabMedico').text() == 'Nenhum paciente') {
+              toastr["info"]("Sem senha")
+            } else if(selectClass == 0){
+              if($('.discoverJob').text() == 'Painel de senhas'){
+                  $('.selectDIV').children().css({
+                  'border': 'solid #31b0d5',
+                  'border-width': '5px'
+                  });
+                  ++selectClass
+
+                 var ordemParaChamada = {
+                    senha: $('#senhaGabMedico').text(),
+                    gabPosicao: $('#senhaGabMedicoAction').data('medico-posicao'),
+                    gab: $('#senhaGabMedicoAction').data('gabinete')
+                  }
+
+                  socket.emit('enviarSenhaParaTodosGab', ordemParaChamada);
+
+                  toastr["info"]("Paciente chamado")
+              } else if($('.discoverJob').text() == 'Painel do Balcão') {
+                  $('.selectDIV').children().css({
+                    'border': 'solid #31b0d5',
+                    'border-width': '5px'
+                  });
+                  ++selectClass
+
+                  var ordemParaChamada = {
+                    senha: $('#updateSenhaFuncionarioAuto').text(),
+                    balcaoPosicao: $('#senhaBalcaoFuncionarioAction').data('funcionario-posicao'),
+                    balcao: $('#senhaBalcaoFuncionarioAction').data('balcao')
+                  }
+
+                  socket.emit('enviarSenhaParaTodosBalcao', ordemParaChamada);
+
+                  $('input[name="balNC"]').prop('disabled', false);
+                  $('input[name="balNP"]').prop('disabled', false);
+                  $('input[name="balA"]').prop('disabled', false);
+                  $('#balSexo').prop('disabled', false);
+                  $('input[name="balE"]').prop('disabled', false);
+                  $('input[name="balC"]').prop('disabled', false);
+                  $('input[name="balCP"]').prop('disabled', false);
+                  $('input[name="balT"]').prop('disabled', false);
+
+                  toastr["info"]("Cliente chamado")
+              }
+            } else {
+              if(atentimento == 0){
+                $('.selectDIV').children().css({
+                  'border': '',
+                  'border-width': ''
+                });
+                --selectClass
+
+                $('input[name="balNC"]').prop('disabled', true);
+                $('input[name="balNP"]').prop('disabled', true);
+                $('input[name="balA"]').prop('disabled', true);
+                $('#balSexo').prop('disabled', true);
+                $('input[name="balE"]').prop('disabled', true);
+                $('input[name="balC"]').prop('disabled', true);
+                $('input[name="balCP"]').prop('disabled', true);
+                $('input[name="balT"]').prop('disabled', true);
+              } else {
+                toastr['warning']['Atentimento concluído, chame um novo cliente']
+              }
+            }    
+          });
+
+          //socket
+          socket.on('connect', function(){
+            var permission = <%= (permission == 2 || permission == 1) ? permission : 0 %>;
+            if(permission == 2){
+              var id = '<%= (balcaoUser) ? balcaoUser : '' %>'
+              var send = {
+                id: id,
+                permission: permission
+              }
+              socket.emit('receivePermissionUser', send)
+            } else if(permission == 1){
+              var id = '<%= id %>'
+              var send = {
+                id: id,
+                permission: permission
+              }
+              socket.emit('receivePermissionUser', send)
+            } else {
+              socket.emit('receivePermissionUser', permission)
+            }
+            
+            socket.on('users_count', function(data){
+              $('#clientON').text(data);
+            });
+          });
+
+          socket.on('senhaUpdateAll', function() { //apresentação da mensagem recebida de outro socket
+              var valor = $('#senhaUpdateAdmin').text();
+              $('#senhaUpdateAdmin').text(parseInt(valor)+1);
+          });
+
+          socket.on('novoPacienteUpdate', function(update){
+            if($('#senhaGabMedicoAction').data('gabinete') == update.gabinete){
+              if(update.senha == 'Sem senha'){
+                ++gabCheck
+                toastr["info"]('Sem pacientes para o '+ update.gabinete)
+                $('#gabInfo').css('display','block');
+                $('#especialidadeMedico').css('display','none');
+                $('#gabSenhaH2').css('display','none');
+              } else {
+                toastr["info"]("Novo paciente com a senha: "+ update.senha)
+                $('#gabInfo').css('display','none');
+                $('#especialidadeMedico').css('display','block');
+                $('#gabSenhaH2').css('display','block');
+
+                $('#senhaGabMedico').text(update.senha)
+                $('#senhaGabMedicoAction').attr('data-gabinete-senha', update.senha)
+
+                //
+                $('#gabNC').text(update.nc)
+                $('#gabNP').text(update.np)
+                $('#gabA').text(update.a)
+                $('#gabS').text(update.s)
+                $('#gabE').text(update.e)
+                $('#gabC').text(update.c)
+                $('#gabCP').text(update.cp)
+                $('#gabT').text(update.t)
+                //
+                $('.selectDIV').children().css({
+                  'border': '',
+                  'border-width': ''
+                });
+                --selectClass
+              }
+            }
+          });
+
+          socket.on('novoClienteUpdateBalcao', function(update){
+            if($('#senhaBalcaoFuncionarioAction').data('balcao') == update.balcao){
+              if(update.senha == 'Sem senha'){
+                ++balcaoCheck
+                toastr["info"]('Sem clientes para o balcão ' + update.balcao)
+              } else {
+                toastr["info"]("Novo cliente com a senha: "+ update.senha)
+                $('#updateSenhaFuncionarioAuto').text(update.senha)
+                $('#senhaBalcaoFuncionarioAction').attr('data-balcao-senha', update.senha)
+                $('#senhaBalcaoFuncionarioAction').attr('data-medico-balcao', update.medicoBalcao)
+                $('#UpdateEspecialidadeMedicoBalcao').text(update.especialidade)
+                //
+                $('input[name="balNC"]').prop('disabled', false);
+                $('input[name="balNP"]').prop('disabled', false);
+                $('input[name="balA"]').prop('disabled', false);
+                $('#balSexo').prop('disabled', false);
+                $('input[name="balE"]').prop('disabled', false);
+                $('input[name="balC"]').prop('disabled', false);
+                $('input[name="balCP"]').prop('disabled', false);
+                $('input[name="balT"]').prop('disabled', false);
+
+                $('input[name="balNC"]').val('');
+                $('input[name="balNP"]').val('');
+                $('input[name="balA"]').val('');
+                $('#balSexo').val('');
+                $('input[name="balE"]').val('');
+                $('input[name="balC"]').val('');
+                $('input[name="balCP"]').val('');
+                $('input[name="balT"]').val('');
+
+                $('#balInfo').css('display','none');
+                $('#UpdateEspecialidadeMedicoBalcao').css('display','block');
+                $('#balSenha').css('display','block');
+                //
+                $('.selectDIV').children().css({
+                  'border': '',
+                  'border-width': ''
+                });
+                --selectClass
+              }
+            }
+          });
+
+          socket.on('updateSenhaBalcaoPainelSenhas', function(data){  
+            if($('#senhaBalcaoFuncionarioAction').data('balcao') == data.balcao){
+              $('#UpdateEspecialidadeMedicoBalcao').text(data.especialidade);
+              $('#updateSenhaFuncionarioAuto').text(data.senha)
+              $('#senhaBalcaoFuncionarioAction').attr('data-balcao-senha', data.senha);
+              $('#senhaBalcaoFuncionarioAction').attr('data-medico-balcao', data.medicoBalcao);
+              toastr["info"]("Novo cliente com a senha: "+ data.senha)
+            }      
+          });
+
+          socket.on('updateSenhaGabPainelSenhas', function(data){
+            if($('#senhaGabMedicoAction').data('gabinete') == data.gabinete){
+              $('#especialidadeMedico').text(data.especialidade);
+              $('#senhaGabMedicoAction').attr('data-gabinete-senha', data.senha);
+              $('#senhaGabMedico').text(data.senha);
+              //
+              $('#gabNC').text(data.nc)
+              $('#gabNP').text(data.np)
+              $('#gabA').text(data.a)
+              $('#gabS').text(data.s)
+              $('#gabE').text(data.e)
+              $('#gabC').text(data.c)
+              $('#gabCP').text(data.cp)
+              $('#gabT').text(data.t)
+              //
+              toastr["info"]("Novo paciente com a senha: "+ data.senha)
+            }    
+          });
+
+          socket.on('chamarSenhaPainelPrincipalBalcao', function(data){
+            try {
+              
+              $('.balcaoSenhas:eq('+data.posicao+')').fadeOut().fadeIn().text(zeroPad(data.senhaChamada, 3)).fadeOut().fadeIn()
+              playSoundSenha()
+            } catch {
+
+            }
+          });
+
+          socket.on('chamarSenhaPainelPrincipalGab', function(data){
+            try {
+              $('.gabSenhas:eq('+data.posicao+')').fadeOut().fadeIn().text(zeroPad(data.senhaChamada, 3)).fadeOut().fadeIn()
+              playSoundSenha()
+            } catch {
+
+            }
+          });
+
+          socket.on('clienteUpdateAdmin', function(data){
+            $('#clienteAtendimentoUpdateAdmin').text(data)
+          });
+          
+          socket.on('showSenhaRetirada', function(data){
+            toastr["info"]("Senha: "+zeroPad(data.senha, 3)+" | Consulta de " +data.especialidade)
+          });
+          
+          //retirar senha
+          $('.retirarSenha').click(function(){
+            var bloco = $(this).data('medico-posicao'); //retira informação do bloco
+            socket.emit('userRetirarSenha', bloco);
+          });
+          $('.retirarSenhaFunc').click(function(){
+            var bloco = $(this).data('medico-posicao'); //retira informação do bloco
+            socket.emit('userRetirarSenha', bloco);
+            $('.close').click();
+            balcaoCheck = 1
+            atentimento = 1
+            retirarSenhaFunc = 1
+            $('input[name="balNC"]').prop('disabled', true);
+            $('input[name="balNP"]').prop('disabled', true);
+            $('input[name="balA"]').prop('disabled', true);
+            $('#balSexo').prop('disabled', true);
+            $('input[name="balE"]').prop('disabled', true);
+            $('input[name="balC"]').prop('disabled', true);
+            $('input[name="balCP"]').prop('disabled', true);
+            $('input[name="balT"]').prop('disabled', true);
+
+            $('#balInfo').css('display','block');
+            $('#UpdateEspecialidadeMedicoBalcao').css('display','none');
+            $('#balSenha').css('display','none');
+          });
+          $('.retirarSenhaGab').click(function(){
+            var bloco = $(this).data('medico-posicao'); //retira informação do bloco
+
+            var nc = $('#gabNC').text();
+            var np = $('#gabNP').text();
+            var a = $('#gabA').text();
+            var s = $('#gabS').text();
+            var e = $('#gabE').text();
+            var c = $('#gabC').text();
+            var cp = $('#gabCP').text();
+            var t = $('#gabT').text();
+
+            var medicoSendNewCliente = {
+              balcaoMedico: bloco,
+              nc: nc,
+              np: np,
+              a: a,
+              s: s,
+              e: e,
+              c: c,
+              cp: cp,
+              t: t
+            }
+
+            socket.emit('funcionarioCheck', medicoSendNewCliente);
+            $('.close').click();
+            gabCheck = 1
+            consulta = 1
+            $('#gabNC').text('Cliente atendido');
+            $('#gabNP').text('Cliente atendido');
+            $('#gabA').text('Cliente atendido');
+            $('#gabS').text('Cliente atendido');
+            $('#gabE').text('Cliente atendido');
+            $('#gabC').text('Cliente atendido');
+            $('#gabCP').text('Cliente atendido');
+            $('#gabT').text('Cliente atendido');
+            $('#gabInfo').css('display','block');
+            $('#especialidadeMedico').css('display','none');
+            $('#gabSenhaH2').css('display','none');
+          });
+
+          $('#gabSenhaAlterarMedico').click(function(event){
+            if(selectClass == 1){
+              if(consulta == 0){
+                if(removeUmaVez == 0){
+                  //remover o seu bloco
+                  $('.removeSeuBloco:eq(<%= id %>)').remove()
+                  $('.removeSeuBloco2:eq(<%= id %>)').remove()
+                  removeUmaVez = 1
+                }
+              } else {
+                  event.stopImmediatePropagation()
+              }  
+            } else {
+              event.stopImmediatePropagation()
+              toastr["warning"]("Precisa de chamar o paciente para poder continuar")
+            }        
+          });
+
+          $('#balcaoSenhaAlterarFuncionario').click(function(event){
+            if(selectClass == 0){  
+              event.stopImmediatePropagation()
+              toastr["warning"]("Precisa de chamar o cliente para poder continuar")
+            } else if(atentimento == 1){
+              event.stopImmediatePropagation()
+              toastr["warning"]("Atendimento concluido")
+            }
+          });
+
+          $('#gabSenhaChamarProximoPaciente').click(function(){
+            if(selectClass == 1){
+              if(gabCheck == 1){
+                var bloco = $('#senhaGabMedicoAction').data('gabinete-senha');
+                var gabinete = $('#senhaGabMedicoAction').data('gabinete');
+                var medicoPosition = $('#senhaGabMedicoAction').data('medico-posicao')
+                var situacao = {
+                  bloco: bloco,
+                  gabinete: gabinete,
+                  medicoPosition: medicoPosition
+                }
+                socket.emit('medicoCheck', situacao);
+                gabCheck = 0
+                consulta = 0
+              } else {
+                toastr["warning"]("Antes de chamar um novo paciente, conclua a consulta")
+              }      
+            } else {
+              toastr["warning"]("Precisa de chamar o paciente para poder continuar")
+            }
+          });
+
+          $('#gabSenhaCheckMedico').click(function(){
+            if(selectClass == 1){
+              if(consulta == 0){
+                gabCheck = 1
+                consulta = 1
+                $('#gabNC').text('Cliente atendido');
+                $('#gabNP').text('Cliente atendido');
+                $('#gabA').text('Cliente atendido');
+                $('#gabS').text('Cliente atendido');
+                $('#gabE').text('Cliente atendido');
+                $('#gabC').text('Cliente atendido');
+                $('#gabCP').text('Cliente atendido');
+                $('#gabT').text('Cliente atendido');
+                $('#gabInfo').css('display','block');
+                $('#especialidadeMedico').css('display','none');
+                $('#gabSenhaH2').css('display','none');
+                toastr["success"]("Consulta concluída")
+              }   
+            } else {
+              toastr["warning"]("Precisa de chamar o paciente para poder continuar")
+            }
+          })
+
+          //funcionarioPassSenha
+          $('#balcaoSenhaCheckFuncionario').click(function(){
+            if(selectClass == 1){
+              if(atentimento == 0){
+                //dados cliente
+                  var nc = $('input[name="balNC"]').val();
+                  var np = $('input[name="balNP"]').val();
+                  var a = $('input[name="balA"]').val();
+
+                  var s = $('#balSexo').val();
+
+                  var e = $('input[name="balE"]').val();
+                  var c = $('input[name="balC"]').val();
+                  var cp = $('input[name="balCP"]').val();
+                  var t = $('input[name="balT"]').val();
+                  //
+
+                  if(s != 'Selecione...'){
+                    if(!empty(nc) || !empty(np) || !empty(a) || !empty(e) || !empty(c) || !empty(cp) || !empty(t)){
+                      var balcaoMedico = $('#senhaBalcaoFuncionarioAction').attr('data-medico-balcao')
+                      var balcao = $('#senhaBalcaoFuncionarioAction').attr('data-balcao')
+                      var funcionarioCheckSend = {
+                        balcaoMedico: balcaoMedico,
+                        balcao: balcao,
+                        nc:nc,
+                        np:np,
+                        a:a,
+                        s:s,
+                        e:e,
+                        c:c,
+                        cp:cp,
+                        t:t
+                      }
+                      socket.emit('funcionarioCheck', funcionarioCheckSend);
+                      balcaoCheck = 1
+                      atentimento = 1
+                      $('input[name="balNC"]').prop('disabled', true);
+                      $('input[name="balNP"]').prop('disabled', true);
+                      $('input[name="balA"]').prop('disabled', true);
+                      $('#balSexo').prop('disabled', true);
+                      $('input[name="balE"]').prop('disabled', true);
+                      $('input[name="balC"]').prop('disabled', true);
+                      $('input[name="balCP"]').prop('disabled', true);
+                      $('input[name="balT"]').prop('disabled', true);
+
+                      $('#balInfo').css('display','block');
+                      $('#UpdateEspecialidadeMedicoBalcao').css('display','none');
+                      $('#balSenha').css('display','none');
+
+                      toastr["success"]("Atentimento concluído") 
+                    } else {
+                      toastr["warning"]("Existe campos vazios!")
+                    }
+                  } else {
+                    toastr["warning"]("Selecione o sexo do paciente")
+                  }
+              } else {
+                toastr["warning"]("Precisa de chamar um novo cliente") 
+              }        
+            } else {
+              toastr["info"]("Selecione a senha")
+            }
+          });
+
+          $('input[name="balNC"]').change(function(){
+            var nc = $(this).val();
+            var sliptText = nc.split(" ");
+
+            for (i = 0; i < sliptText.length; i++) {
+              sliptText[i] = sliptText[i].charAt(0).toUpperCase() + sliptText[i].slice(1)
+            }
+
+            var primeiroNome = sliptText[0]
+            var ultimoNome = sliptText.slice(-1)[0]
+
+            var sexoEscolhaAuto = primeiroNome.slice(primeiroNome.length - 1)
+
+            if(sexoEscolhaAuto == 'a'){
+              $('#balSexo option:eq(1)').prop('selected', true)
+            } else {
+              $('#balSexo option:eq(2)').prop('selected', true)
+            }
+
+            $('input[name="balNP"]').val(primeiroNome);
+            $('input[name="balA"]').val(ultimoNome);
+
+            var nomeFull = '';
+            for (i = 0; i < sliptText.length; i++) {
+              if(i == 0) {nomeFull = sliptText[0]} else {nomeFull = nomeFull + ' ' + sliptText[i];}
+            }
+            $(this).val(nomeFull)
+          })
+
+          $('input[name="balE"]').change(function(){
+            var e =  $(this).val();
+
+            var sliptText = e.split(" ");
+
+            for (i = 0; i < sliptText.length; i++) {
+              sliptText[i] = sliptText[i].charAt(0).toUpperCase() + sliptText[i].slice(1)
+            }
+
+            var endereçoFull = '';
+            for (i = 0; i < sliptText.length; i++) {
+              if(i == 0) {endereçoFull = sliptText[0]} else {endereçoFull = endereçoFull + ' ' + sliptText[i];}
+            }
+            $(this).val(endereçoFull)
+          });
+
+          $('input[name="balC"]').change(function(){
+            var e =  $(this).val();
+
+            var sliptText = e.split(" ");
+
+            for (i = 0; i < sliptText.length; i++) {
+              sliptText[i] = sliptText[i].charAt(0).toUpperCase() + sliptText[i].slice(1)
+            }
+
+            var cidadeFull = '';
+            for (i = 0; i < sliptText.length; i++) {
+              if(i == 0) {cidadeFull = sliptText[0]} else {cidadeFull = cidadeFull + ' ' + sliptText[i];}
+            }
+            $(this).val(cidadeFull)
+          });
+
+          $('input[name="balCP"]').change(function(){
+            var zipCode = $(this).val();
+	          var code_verify =  (/(^\d{5}$)|(^\d{4}-\d{3}$)/).test(zipCode);
+            if(!code_verify){toastr["warning"]("Código postal incorrecto")}
+          });
+
+          function isNumber(evt) {
+            var iKeyCode = (evt.which) ? evt.which : evt.keyCode
+            if (iKeyCode != 46 && iKeyCode > 31 && (iKeyCode < 48 || iKeyCode > 57))
+                return false;
+
+            return true;
+          }
+
+          function empty(data)
+          {
+            if(typeof(data) == 'number' || typeof(data) == 'boolean')
+            { 
+              return false; 
+            }
+            if(typeof(data) == 'undefined' || data === null)
+            {
+              return true; 
+            }
+            if(typeof(data.length) != 'undefined')
+            {
+              return data.length == 0;
+            }
+            var count = 0;
+            for(var i in data)
+            {
+              if(data.hasOwnProperty(i))
+              {
+                count ++;
+              }
+            }
+            return count == 0;
+          }
+
+          $('#balcaoSenhaChamarProximoFuncionario').click(function(){
+            if(selectClass == 1){
+              if(balcaoCheck == 1){
+                  //dados cliente
+                  var nc = $('input[name="balNC"]').val();
+                  var np = $('input[name="balNP"]').val();
+                  var a = $('input[name="balA"]').val();
+                  var s = $('#balSexo').val();
+                  var e = $('input[name="balE"]').val();
+                  var c = $('input[name="balC"]').val();
+                  var cp = $('input[name="balCP"]').val();
+                  var t = $('input[name="balT"]').val();
+                  //
+                  if($('#balInfo').css('display') != 'none') {
+                    if(retirarSenhaFunc == 0){
+                      if(s != 'Selecione...'){
+                        if(!empty(nc) || !empty(np) || !empty(a) || !empty(e) || !empty(c) || !empty(cp) || !empty(t)){
+                          var balcaoMedico = $('#senhaBalcaoFuncionarioAction').attr('data-medico-balcao')
+                          var balcao = $('#senhaBalcaoFuncionarioAction').attr('data-balcao')
+                          var funcionarioNovoClienteSend = {
+                            balcaoMedico: balcaoMedico,
+                            balcao: balcao
+                          }
+                          socket.emit('funcionarioNovoClienteSend', funcionarioNovoClienteSend);
+                          balcaoCheck = 0
+                          atentimento = 0
+                        } else {
+                          toastr["warning"]("Existe campos vazios!")
+                        }                  
+                      } else {
+                        toastr["warning"]("Selecione o sexo do paciente")
+                      }
+                    } else {
+                      var balcaoMedico = $('#senhaBalcaoFuncionarioAction').attr('data-medico-balcao')
+                      var balcao = $('#senhaBalcaoFuncionarioAction').attr('data-balcao')
+                      var funcionarioNovoClienteSend = {
+                        balcaoMedico: balcaoMedico,
+                        balcao: balcao
+                      }
+                      socket.emit('funcionarioNovoClienteSend', funcionarioNovoClienteSend);
+                      balcaoCheck = 0
+                      atentimento = 0
+                      retirarSenhaFunc = 0
+                    }
+                  } 
+              } else {
+                toastr["warning"]("Precisa de terminar o atentimento com o cliente")
+              }             
+            } else {
+              toastr["info"]("Precisa de chamar primeiro o cliente")
+            }
+          });
+        </script>
+</body>
+</html>

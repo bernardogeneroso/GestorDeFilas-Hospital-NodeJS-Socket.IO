@@ -1,0 +1,72 @@
+body  {
+  background-color: #f2f2f2;
+  font-family: Tahoma, Geneva, sans-serif;
+}
+
+.login-pagina {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+}
+.form {
+  position: relative;
+  z-index: 1;
+  background: #FFFFFF;
+  max-width: 360px;
+  margin: 0 auto 100px;
+  padding: 45px;
+  padding-bottom: 20px;
+  text-align: center;
+  border-radius: 6px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+.form input {
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  padding-left: 25px;
+  box-sizing: border-box;
+  font-size: 14px;
+  border: 2px solid #0074E1;
+  border-radius: 6px;
+}
+.span_info {
+ text-align: left; 
+ display: block;
+ margin: -8px 0 8px;
+ font-size: 12px;
+}
+.form input[type=button], .form input[type=submit] {
+  text-transform: uppercase;
+  outline: 0;
+  background: #0074E1;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+  border: 2px solid #0074E1;
+  border-radius: 6px;
+}
+.form input[type=button]:hover,.form input[type=button]:active,.form input[type=button]:focus {
+  background: #0074E1;
+}
+.form h2{
+  color: #0074E1;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.span_awesome {
+  color: #0074E1;
+  text-align: left; 
+  display: block;
+  margin: 18.5px 10px;
+  font-size: 12px;
+  position: absolute;
+}
